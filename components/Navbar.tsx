@@ -1,0 +1,4 @@
+"use client";
+import Link from "next/link";
+import { Github, Menu } from "lucide-react";
+export default function Navbar(){return <header className="sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-white/10 bg-[#0b1020]/85 px-5 backdrop-blur-xl md:px-8"><div className="flex items-center gap-3 lg:hidden"><Menu size={19}/><span className="font-semibold">AutomataLab</span></div><div className="hidden text-sm text-slate-400 lg:block">Finite automata workspace <span className="px-2 text-slate-600">/</span><span className="text-slate-200">DFA minimizer</span></div><div className="flex items-center gap-3"><span className="hidden rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300 sm:inline">● Engine ready</span><Link href="/about" className="rounded-lg p-2 text-slate-400 hover:bg-white/10 hover:text-white" aria-label="About"><Github size={18}/></Link></div></header>}
