@@ -6,4 +6,62 @@ import {minimizeDFA} from "@/lib/minimization";
 import {validateDFA} from "@/lib/validation";
 import StateDiagram from "@/components/StateDiagram";
 import TransitionTable from "@/components/TransitionTable";
-export default function Minimization(){const dfa=useDFAStore(s=>s.dfa);const [index,setIndex]=useState(0);const [playing,setPlaying]=useState(false);const validation=validateDFA(dfa);const result=useMemo(()=>validation.valid?minimizeDFA(dfa):null,[dfa,validation.valid]);useEffect(()=>{if(!playing||!result)return;const timer=window.setInterval(()=>setIndex(i=>{if(i>=result.steps.length-1){setPlaying(false);return i;}return i+1;}),1500);return()=>window.clearInterval(timer);},[playing,result]);useEffect(()=>{setIndex(0);setPlaying(false);},[dfa]);const step=result?.steps[Math.min(index,(result?.steps.length||1)-1)];function exportMinimized(){if(!result)return;const blob=new Blob([JSON.stringify(result.dfa,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="minimized-dfa.json";a.click();URL.revokeObjectURL(url);}return <div className="mx-auto max-w-7xl space-y-6"><div><p className="text-sm uppercase tracking-[.2em] text-violet-300">Partition refinement engine</p><h1 className="mt-2 text-3xl font-black">DFA Minimization</h1><p className="mt-2 text-slate-400">Follow the mathematical process from reachability to the minimal equivalent DFA.</p></div>{!validation.valid?<div className="panel p-5 text-rose-300">{validation.errors.map(e=><p key={e}>{e}</p>)}</div>:result&&<><div className="grid gap-4 sm:grid-cols-3"><div className="panel p-4"><p className="text-xs text-slate-400">Original states</p><p className="mt-1 text-3xl font-bold">{dfa.states.length}</p></div><div className="panel p-4"><p className="text-xs text-slate-400">Reachable states</p><p className="mt-1 text-3xl font-bold">{result.reachableStates.length}</p></div><div className="panel p-4"><p className="text-xs text-slate-400">Minimized states</p><p className="mt-1 text-3xl font-bold text-cyan-300">{result.dfa.states.length}</p></div></div><section className="panel p-5"><div className="mb-3 flex flex-wrap items-center justify-between gap-3"><div><span className="text-xs text-violet-300">STEP {index+1} / {result.steps.length}</span><h2 className="mt-1 text-xl font-bold">{step.title}</h2></div><div className="flex flex-wrap gap-2"><button className="btn-secondary" title="Reset" onClick={()=>{setIndex(0);setPlaying(false)}}><RotateCcw size={15}/></button><button className="btn-secondary" disabled={index===0} onClick={()=>{setPlaying(false);setIndex(i=>Math.max(0,i-1))}}><ArrowLeft size={15}/></button><button className="btn-secondary inline-flex items-center gap-2" onClick={()=>setPlaying(p=>!p)}>{playing?<Pause size={15}/>:<Play size={15}/>} {playing?"Pause":"Play"}</button><button className="btn-primary inline-flex items-center gap-2" disabled={index===result.steps.length-1} onClick={()=>{setPlaying(false);setIndex(i=>Math.min(result.steps.length-1,i+1))}}>Next <ArrowRight size={15}/></button></div></div><div className="mb-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all" style={{width:`${((index+1)/result.steps.length)*100}%`}}/></div><p className="text-sm leading-6 text-slate-300">{step.description}</p><div className="mt-5 flex flex-wrap gap-3">{step.partitions.map((g,i)=><div key={i} className="rounded-xl border border-violet-300/20 bg-violet-400/10 p-3"><div className="mb-2 text-[10px] uppercase text-violet-200">Group {i+1}</div><div className="flex flex-wrap gap-2">{g.map(s=><span key={s} className="rounded-lg bg-slate-900/70 px-3 py-1.5 text-sm">{s}</span>)}</div></div>)}</div><div className="mt-5 flex gap-1">{result.steps.map((s,i)=><button key={s.title} title={s.title} onClick={()=>{setPlaying(false);setIndex(i)}} className={`h-1.5 flex-1 rounded-full ${i<=index?"bg-cyan-300":"bg-white/10"}`}/>)}</div></section><StateDiagram dfa={index===result.steps.length-1?result.dfa:dfa} title={index===result.steps.length-1?"Minimized DFA":"Current DFA"}/><div className="flex justify-end"><button className="btn-primary inline-flex items-center gap-2" onClick={exportMinimized}><Download size={16}/>Export minimized DFA JSON</button></div><div className="grid gap-6 xl:grid-cols-2"><div><h3 className="mb-3 font-bold">Original transition table</h3><TransitionTable dfa={dfa}/></div><div><h3 className="mb-3 font-bold">Minimized transition table</h3><TransitionTable dfa={result.dfa}/></div></div></>}</div>}
+
+export default function Minimization(){
+ const dfa=useDFAStore(s=>s.dfa);
+ const [index,setIndex]=useState(0);
+ const [playing,setPlaying]=useState(false);
+ const validation=validateDFA(dfa);
+ const result=useMemo(()=>validation.valid?minimizeDFA(dfa):null,[dfa,validation.valid]);
+ useEffect(()=>{
+  if(!playing||!result)return;
+  const timer=window.setInterval(()=>setIndex(i=>{
+   if(i>=result.steps.length-1){setPlaying(false);return i;}
+   return i+1;
+  }),1500);
+  return()=>window.clearInterval(timer);
+ },[playing,result]);
+ useEffect(()=>{setIndex(0);setPlaying(false);},[dfa]);
+ const step=result?.steps[Math.min(index,(result?.steps.length||1)-1)] ?? {
+  title:"Ready",
+  description:"The DFA is ready for minimization.",
+  partitions:[] as string[][],
+  kind:"result" as const
+ };
+ function exportMinimized(){
+  if(!result)return;
+  const blob=new Blob([JSON.stringify(result.dfa,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="minimized-dfa.json";a.click();
+  URL.revokeObjectURL(url);
+ }
+ return <div className="mx-auto max-w-7xl space-y-6">
+  <div><p className="text-sm uppercase tracking-[.2em] text-violet-300">Partition refinement engine</p><h1 className="mt-2 text-3xl font-black">DFA Minimization</h1><p className="mt-2 text-slate-400">Follow the mathematical process from reachability to the minimal equivalent DFA.</p></div>
+  {!validation.valid?<div className="panel p-5 text-rose-300">{validation.errors.map(e=><p key={e}>{e}</p>)}</div>:result&&<>
+   <div className="grid gap-4 sm:grid-cols-3">
+    <div className="panel p-4"><p className="text-xs text-slate-400">Original states</p><p className="mt-1 text-3xl font-bold">{dfa.states.length}</p></div>
+    <div className="panel p-4"><p className="text-xs text-slate-400">Reachable states</p><p className="mt-1 text-3xl font-bold">{result.reachableStates.length}</p></div>
+    <div className="panel p-4"><p className="text-xs text-slate-400">Minimized states</p><p className="mt-1 text-3xl font-bold text-cyan-300">{result.dfa.states.length}</p></div>
+   </div>
+   <section className="panel p-5">
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+     <div><span className="text-xs text-violet-300">STEP {index+1} / {result.steps.length}</span><h2 className="mt-1 text-xl font-bold">{step.title}</h2></div>
+     <div className="flex flex-wrap gap-2">
+      <button className="btn-secondary" title="Reset" onClick={()=>{setIndex(0);setPlaying(false)}}><RotateCcw size={15}/></button>
+      <button className="btn-secondary" disabled={index===0} onClick={()=>{setPlaying(false);setIndex(i=>Math.max(0,i-1))}}><ArrowLeft size={15}/></button>
+      <button className="btn-secondary inline-flex items-center gap-2" onClick={()=>setPlaying(p=>!p)}>{playing?<Pause size={15}/>:<Play size={15}/>} {playing?"Pause":"Play"}</button>
+      <button className="btn-primary inline-flex items-center gap-2" disabled={index===result.steps.length-1} onClick={()=>{setPlaying(false);setIndex(i=>Math.min(result.steps.length-1,i+1))}}>Next <ArrowRight size={15}/></button>
+     </div>
+    </div>
+    <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all" style={{width:`${((index+1)/result.steps.length)*100}%`}}/></div>
+    <p className="text-sm leading-6 text-slate-300">{step.description}</p>
+    <div className="mt-5 flex flex-wrap gap-3">{step.partitions.map((g,i)=><div key={i} className="rounded-xl border border-violet-300/20 bg-violet-400/10 p-3"><div className="mb-2 text-[10px] uppercase text-violet-200">Group {i+1}</div><div className="flex flex-wrap gap-2">{g.map(s=><span key={s} className="rounded-lg bg-slate-900/70 px-3 py-1.5 text-sm">{s}</span>)}</div></div>)}</div>
+    <div className="mt-5 flex gap-1">{result.steps.map((s,i)=><button key={`${s.title}-${i}`} title={s.title} onClick={()=>{setPlaying(false);setIndex(i)}} className={`h-1.5 flex-1 rounded-full ${i<=index?"bg-cyan-300":"bg-white/10"}/>)}</div>
+   </section>
+   <StateDiagram dfa={index===result.steps.length-1?result.dfa:dfa} title={index===result.steps.length-1?"Minimized DFA":"Current DFA"}/>
+   <div className="flex justify-end"><button className="btn-primary inline-flex items-center gap-2" onClick={exportMinimized}><Download size={16}/>Export minimized DFA JSON</button></div>
+   <div className="grid gap-6 xl:grid-cols-2"><div><h3 className="mb-3 font-bold">Original transition table</h3><TransitionTable dfa={dfa}/></div><div><h3 className="mb-3 font-bold">Minimized transition table</h3><TransitionTable dfa={result.dfa}/></div></div>
+  </>}
+ </div>;
+}
