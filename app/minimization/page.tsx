@@ -57,7 +57,7 @@ export default function Minimization(){
     <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all" style={{width:`${((index+1)/result.steps.length)*100}%`}}/></div>
     <p className="text-sm leading-6 text-slate-300">{step.description}</p>
     <div className="mt-5 flex flex-wrap gap-3">{step.partitions.map((g,i)=><div key={i} className="rounded-xl border border-violet-300/20 bg-violet-400/10 p-3"><div className="mb-2 text-[10px] uppercase text-violet-200">Group {i+1}</div><div className="flex flex-wrap gap-2">{g.map(s=><span key={s} className="rounded-lg bg-slate-900/70 px-3 py-1.5 text-sm">{s}</span>)}</div></div>)}</div>
-    <div className="mt-5 flex gap-1">{result.steps.map((s,i)=><button key={`${s.title}-${i}`} title={s.title} onClick={()=>{setPlaying(false);setIndex(i)}} className={`h-1.5 flex-1 rounded-full ${i<=index?"bg-cyan-300":"bg-white/10"}/>)}</div>
+    <div className="mt-5 flex gap-1">{result.steps.map((s,i)=><button key={`${s.title}-${i}`} title={s.title} onClick={()=>{setPlaying(false);setIndex(i)}} className={`h-1.5 flex-1 rounded-full ${i<=index?"bg-cyan-300":"bg-white/10"}`}>}</div>
    </section>
    <StateDiagram dfa={index===result.steps.length-1?result.dfa:dfa} title={index===result.steps.length-1?"Minimized DFA":"Current DFA"}/>
    <div className="flex justify-end"><button className="btn-primary inline-flex items-center gap-2" onClick={exportMinimized}><Download size={16}/>Export minimized DFA JSON</button></div>
