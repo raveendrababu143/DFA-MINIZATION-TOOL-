@@ -1,0 +1,4 @@
+import type { DFA } from "@/types/automata";
+export default function TransitionTable({dfa}:{dfa:DFA}) {
+ return <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/[.035]"><table className="w-full text-left text-sm"><thead className="bg-white/[.06] text-slate-300"><tr><th className="px-4 py-3">State</th>{dfa.alphabet.map(a=><th key={a} className="px-4 py-3">δ( , {a})</th>)}<th className="px-4 py-3">Type</th></tr></thead><tbody>{dfa.states.map(s=><tr key={s} className="border-t border-white/5 text-slate-200"><td className="px-4 py-3 font-semibold">{s===dfa.startState?"→ ":""}{s}</td>{dfa.alphabet.map(a=><td key={a} className="px-4 py-3">{dfa.transitions[s]?.[a]||"—"}</td>)}<td className="px-4 py-3">{dfa.finalStates.includes(s)?<span className="text-fuchsia-300">Final</span>:"Normal"}</td></tr>)}</tbody></table></div>;
+}
